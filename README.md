@@ -8,6 +8,12 @@ PrivateFly Aircraft project lists out the aircraft details and lets you add and 
 2. Maven 3.1
 3. Create a MySQL database named 'privatefly'
 
+## Technologies used
+
+1. Spring Boot
+2. Thymeleaf
+3. Apache Log4j
+
 ## Configurations
 
 Open the `application.properties` file and set your own configurations.
