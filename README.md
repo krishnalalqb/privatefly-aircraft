@@ -6,7 +6,7 @@ PrivateFly Aircraft project lists out the aircraft details and lets you add and 
 
 1. JDK 1.8
 2. Maven 3.1
-3. Create a MySQL database named 'privatefly'
+3. Create a MySQL database named `privatefly` (Can be changed in the `application.properties` config file)
 
 ## Technologies used
 

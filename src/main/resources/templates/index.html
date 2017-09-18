@@ -1,16 +1,69 @@
 <html xmlns="http://thymeleaf.org">
 
 <head>
-<link th:href="@{/css/bootstrap.min.css}" rel="stylesheet"
-	type="text/css"></link>
+<link th:href="@{/css/bootstrap.min.css}" rel="stylesheet" type="text/css"></link>
 <link th:href="@{/css/layout.css}" rel="stylesheet" type="text/css"></link>
-<script
-	src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js">
-	
-</script>
-<script
-	src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js">
-	
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+<script>
+	$(document).ready(function() {
+		
+		$.ajax({
+			url : "http://localhost:8090/listAircrafts",
+			success : function(result) {
+				createData(result);
+			}
+		});
+		
+		$(".sort-by").on("click", function(){
+			$.ajax({
+				url : "http://localhost:8090/sortedAircrafts",
+				success : function(result) {
+					createData(result);
+				}
+			});
+		});
+		
+		$(".search").on("click", function(){
+			var airfieldName = $('#searchField').val();
+			$.ajax({
+				url : "http://localhost:8090/aircraft?airfield=" + airfieldName,
+				success : function(result) {
+					var tableData = "<tr><td>" + result.airfieldName + "</td>" + "<td>"
+					+ result.icaocode + "</td>" + "<td>" + ( new Date(result.dateOpened).toDateString())
+					+ "</td>" + "<td>" + result.runwayLength + "</td></tr>";
+					$('table tbody').html(tableData);
+				}
+			});
+		});
+		
+		
+		$(".add-aircraft").on("click", function(){
+			var airfieldName = $('#airfieldName').val();
+			var icaoCode = $('#ICAOCode').val();
+			var openedDate = $('#dateOpened').val();
+			var runwayLength = $('#runwayLength').val();
+			$.ajax({
+				  method: "POST",
+				  url: "http://localhost:8090/aircraft",
+				  data: { airfieldName: airfieldName, icaoCode: icaoCode, openedDate: openedDate, runwayLength: runwayLength},
+				  success: function() {
+					  location.reload();
+				  }			
+			})
+		});		
+
+
+	});
+	function createData(result) {
+		var tableData = "";
+		result.forEach(function(key, index) {
+			tableData += "<tr><td>" + key.airfieldName + "</td>" + "<td>"
+					+ key.icaocode + "</td>" + "<td>" + (new Date(key.dateOpened).toDateString())
+					+ "</td>" + "<td>" + key.runwayLength + "</td></tr>"
+		});
+		$('table tbody').html(tableData);
+	}
 </script>
 </head>
 
@@ -25,36 +78,30 @@
 	<div class="container">
 		<button type="button" class="pull-right btn btn-primary btn-lg"
 			data-toggle="modal" data-target="#myModal">Add Aircraft</button>
-		<form action="/aircraft" method="get">
 		<div class="col-lg-3 pull-left">
 			<div class="input-group">
-				
-					<input type="text" name="airfield" class="form-control"
-						placeholder="Search for..." /> <span
-						class="input-group-btn pull right">
-						<button class="btn btn-default" type="submit">Search</button>
-					</span>
+
+				<input type="text" name="airfield" id="searchField"
+					class="form-control" placeholder="Search for..." /> <span
+					class="input-group-btn pull right">
+					<button class="btn btn-default search" type="submit">Search</button>
+				</span>
 			</div>
 		</div>
-		</form>
-		<h2>Available aircrafts<a href="sortedAircrafts" class="sort-by"></a></h2>
+		<h2>
+			Available aircrafts<a class="sort-by"></a>
+		</h2>
 		<div class="container">
 			<table class="table">
 				<thead>
 					<tr>
 						<th>Airfield Name</th>
-						<th>ICAOCode</th>
-						<th>dateOpened</th>
-						<th>runwayLength</th>
+						<th>ICAO Code</th>
+						<th>Date Opened</th>
+						<th>Runway Length</th>
 					</tr>
 				</thead>
 				<tbody>
-					<tr th:each="aircraft : ${aircrafts}">
-						<td th:text="${aircraft.airfieldName}"></td>
-						<td th:text="${aircraft.ICAOCode}"></td>
-						<td th:text="${aircraft.dateOpened}"></td>
-						<td th:text="${aircraft.runwayLength}"></td>
-					</tr>
 				</tbody>
 			</table>
 		</div>
@@ -68,34 +115,31 @@
 					<h4 class="modal-title">Add</h4>
 				</div>
 				<div class="modal-body">
-					<form th:object="${aircraft}" action="/aircraft"
-						method="post">
-						<div class="form-group">
-							<label for="airfieldName"> Airfield Name: </label> <input
-								required="true" type="text" class="form-control"
-								id="airfieldName" placeholder="Enter name" name="airfield" />
+					<div class="form-group">
+						<label for="airfieldName"> Airfield Name: </label> <input
+							required="true" type="text" class="form-control"
+							id="airfieldName" placeholder="Enter name" name="airfield" />
+					</div>
+					<div class="form-group">
+						<label for="ICAOCode"> ICAOCode: </label> <input required="true"
+							type="text" class="form-control" id="ICAOCode"
+							placeholder="Enter ICAOCode" name="ICAO_code" />
+					</div>
+					<div class="form-group">
+						<label for="dateOpened" class="col-2 col-form-label"> Date
+						</label>
+						<div class="col-10">
+							<input required="true" class="form-control" type="date"
+								value="2011-08-19" id="dateOpened" name="openedDate" />
 						</div>
-						<div class="form-group">
-							<label for="ICAOCode"> ICAOCode: </label> <input required="true"
-								type="text" class="form-control" id="ICAOCode"
-								placeholder="Enter ICAOCode" name="ICAO_code" />
-						</div>
-						<div class="form-group">
-							<label for="dateOpened" class="col-2 col-form-label">
-								Date </label>
-							<div class="col-10">
-								<input required="true" class="form-control" type="date"
-									value="2011-08-19" id="dateOpened" name="openedDate" />
-							</div>
-						</div>
-						<div class="form-group">
-							<label for="runwayLength"> Runway Length: </label> <input
-								required="true" type="text" class="form-control"
-								id="runwayLength" placeholder="Enter runwayLength"
-								name="runway_length" />
-						</div>
-						<button type="submit" class="btn btn-default">Submit</button>
-					</form>
+					</div>
+					<div class="form-group">
+						<label for="runwayLength"> Runway Length: </label> <input
+							required="true" type="text" class="form-control"
+							id="runwayLength" placeholder="Enter runwayLength"
+							name="runway_length" />
+					</div>
+					<button type="submit" class="btn btn-default add-aircraft">Submit</button>
 				</div>
 				<div class="modal-footer">
 					<button type="button" class="btn btn-default" data-dismiss="modal">

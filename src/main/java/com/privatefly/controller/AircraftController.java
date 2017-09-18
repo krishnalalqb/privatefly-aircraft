@@ -7,8 +7,8 @@ import java.util.Date;
 
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.ModelMap;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -17,51 +17,49 @@ import org.springframework.web.bind.annotation.RestController;
 import com.privatefly.model.Aircraft;
 import com.privatefly.service.AircraftServiceImpl;
 
-@Controller
-//@RequestMapping("/privatefly")
+@RestController
 public class AircraftController {
 
 	private static final Logger logger = Logger.getLogger(AircraftController.class);
-	private static final String HOME_PAGE = "index";
-	
+
 	@Autowired
 	private AircraftServiceImpl aircraftService;
 
-	@RequestMapping("/")
-	public String viewAircrafts(ModelMap map) {
-		map.addAttribute("aircrafts", aircraftService.findAllAircrafts());
-		logger.info("Aircrafts details are fetched!");
-		return HOME_PAGE;
+	@RequestMapping(value = "/listAircrafts", method = RequestMethod.GET)
+	public ResponseEntity<Iterable<Aircraft>> listAircrafts() {
+		Iterable<Aircraft> aircrafts = aircraftService.findAllAircrafts();
+		logger.info("All aircrafts details are fetched!");
+		return new ResponseEntity<Iterable<Aircraft>>(aircrafts, HttpStatus.OK);
 	}
 
 	@RequestMapping(value = "/aircraft", method = RequestMethod.POST)
-	public String createAircraft(@RequestParam("airfield") String airfield, @RequestParam("ICAO_code") String ICAO_code,
-			@RequestParam("openedDate") String openedDate, @RequestParam("runway_length") String runway_length) {
-		DateFormat df = new SimpleDateFormat("yyyy-mm-dd");
+	public ResponseEntity<String> createAircraft(@RequestParam("airfieldName") String airfieldName,
+			@RequestParam("icaoCode") String icaoCode, @RequestParam("openedDate") String openedDate,
+			@RequestParam("runwayLength") String runwayLength) {
+		DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
 		Date date = null;
 		try {
 			date = df.parse(openedDate);
 		} catch (ParseException e) {
 			logger.error(e);
 		}
-		Aircraft aircraft = new Aircraft(airfield, ICAO_code, date, Double.parseDouble(runway_length));
+		Aircraft aircraft = new Aircraft(airfieldName, icaoCode, date, Double.parseDouble(runwayLength));
 		aircraftService.saveAircraft(aircraft);
 		logger.info("New aircraft is saved!");
-		return "redirect:/";
+		return new ResponseEntity<String>(HttpStatus.CREATED);
 	}
 
 	@RequestMapping(value = "/aircraft", method = RequestMethod.GET)
-	public String sortedAircraft(ModelMap map, @RequestParam("airfield") String airfield) {
-		map.addAttribute("aircrafts", aircraftService.findByAirfieldName(airfield));
+	public ResponseEntity<Aircraft> searchAircraft(@RequestParam("airfield") String airfield) {
+		Aircraft aircraft = aircraftService.findByAirfieldName(airfield);
 		logger.info("Aircraft details are fetched!");
-		return HOME_PAGE;
+		return new ResponseEntity<Aircraft>(aircraft, HttpStatus.OK);
 	}
 
-	@RequestMapping("/sortedAircrafts")
-	public String sortedAircraft(ModelMap map) {
+	@RequestMapping(value = "/sortedAircrafts", method = RequestMethod.GET)
+	public ResponseEntity<Iterable<Aircraft>> listSortedAircrafts() {
 		Iterable<Aircraft> aircrafts = aircraftService.getAllAircraftsSorted();
-		map.addAttribute("aircrafts", aircrafts);
 		logger.info("Sorted aircrafts details are fetched!");
-		return HOME_PAGE;
+		return new ResponseEntity<Iterable<Aircraft>>(aircrafts, HttpStatus.OK);
 	}
 }
