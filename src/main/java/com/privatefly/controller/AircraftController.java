@@ -26,7 +26,7 @@ public class AircraftController {
 	@Autowired
 	private AircraftServiceImpl aircraftService;
 
-	@RequestMapping(value = "/listAircrafts", method = RequestMethod.GET)
+	@RequestMapping(value = "/aircrafts", method = RequestMethod.GET)
 	public ResponseEntity<Iterable<Aircraft>> listAircrafts() {
 		Iterable<Aircraft> aircrafts = aircraftService.findAllAircrafts();
 		logger.info("All aircrafts details are fetched!");
