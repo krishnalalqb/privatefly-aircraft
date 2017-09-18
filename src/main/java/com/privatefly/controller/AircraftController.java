@@ -12,11 +12,13 @@ import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import com.privatefly.model.Aircraft;
 import com.privatefly.service.AircraftServiceImpl;
 
 @Controller
+//@RequestMapping("/privatefly")
 public class AircraftController {
 
 	private static final Logger logger = Logger.getLogger(AircraftController.class);
@@ -32,7 +34,7 @@ public class AircraftController {
 		return HOME_PAGE;
 	}
 
-	@RequestMapping(value = "/createAircraft", method = RequestMethod.POST)
+	@RequestMapping(value = "/aircraft", method = RequestMethod.POST)
 	public String createAircraft(@RequestParam("airfield") String airfield, @RequestParam("ICAO_code") String ICAO_code,
 			@RequestParam("openedDate") String openedDate, @RequestParam("runway_length") String runway_length) {
 		DateFormat df = new SimpleDateFormat("yyyy-mm-dd");
@@ -48,7 +50,7 @@ public class AircraftController {
 		return "redirect:/";
 	}
 
-	@RequestMapping(value = "/getAircraft", method = RequestMethod.GET)
+	@RequestMapping(value = "/aircraft", method = RequestMethod.GET)
 	public String sortedAircraft(ModelMap map, @RequestParam("airfield") String airfield) {
 		map.addAttribute("aircrafts", aircraftService.findByAirfieldName(airfield));
 		logger.info("Aircraft details are fetched!");
