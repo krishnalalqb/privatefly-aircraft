@@ -24,80 +24,88 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import static org.mockito.Mockito.*;
+import static org.hamcrest.Matchers.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebAppConfiguration
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(classes = {PrivateflyBootApplication.class})
+@ContextConfiguration(classes = { PrivateflyBootApplication.class })
 public class AircraftControllerTest {
 
-    private MockMvc mockMvc;
+	private MockMvc mockMvc;
 
-    @Mock
-    private AircraftService aircraftService;
+	@Mock
+	private AircraftService aircraftService;
 
-    @InjectMocks
-    private AircraftController aircraftController;
+	@InjectMocks
+	private AircraftController aircraftController;
 
-    @Before
-    public void init(){
-        MockitoAnnotations.initMocks(this);
-        mockMvc = MockMvcBuilders
-                .standaloneSetup(aircraftController)
-                .build();
-    }
+	@Before
+	public void init() {
+		MockitoAnnotations.initMocks(this);
+		mockMvc = MockMvcBuilders.standaloneSetup(aircraftController).build();
+	}
 
-    // Get All Aircrafts
-    @Test
-    public void test_get_all_success() throws Exception {
-        List<Aircraft> aircrafts = Arrays.asList(
-                new Aircraft("AirfieldNameOne", "AAAA", new Date(), 5555.0),
-                new Aircraft("AirfieldNameTwo", "BBBB", new Date(), 6666.0));
+	// Get All Aircrafts
+	@Test
+	public void test_get_all() throws Exception {
+		Date openedDate = new Date();
+		List<Aircraft> aircrafts = Arrays.asList(new Aircraft("AirfieldNameOne", "AAAA", openedDate, 5555.0),
+				new Aircraft("AirfieldNameTwo", "BBBB", openedDate, 6666.0));
 
-        when(aircraftService.findAllAircrafts()).thenReturn(aircrafts);
+		when(aircraftService.findAllAircrafts()).thenReturn(aircrafts);
 
-        mockMvc.perform(get("/aircrafts"))
-                .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE));
-        
-        verify(aircraftService, times(1)).findAllAircrafts();
-        verifyNoMoreInteractions(aircraftService);
-    }
+		mockMvc.perform(get("/aircrafts")).andExpect(status().isOk())
+				.andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+				.andExpect(jsonPath("$", hasSize(2)))
+				.andExpect(jsonPath("$[0].airfieldName", is("AirfieldNameOne")))
+				.andExpect(jsonPath("$[0].icaocode", is("AAAA")))
+				.andExpect(jsonPath("$[0].dateOpened", is(openedDate.getTime())))
+				.andExpect(jsonPath("$[0].runwayLength", is(5555.0)))
+				.andExpect(jsonPath("$[1].airfieldName", is("AirfieldNameTwo")))
+				.andExpect(jsonPath("$[1].icaocode", is("BBBB")))
+				.andExpect(jsonPath("$[1].dateOpened", is(openedDate.getTime())))
+				.andExpect(jsonPath("$[1].runwayLength", is(6666.0)));
+
+		verify(aircraftService, times(1)).findAllAircrafts();
+		verifyNoMoreInteractions(aircraftService);
+	}
 
 	// Get Aircraft by Airfield name
-    @Test
-    public void test_get_by_id_success() throws Exception {
-        Aircraft aircraft = new Aircraft("AirfieldNameOne", "AAAA", new Date(), 5555.0);
+	@Test
+	public void test_get_by_airfieldname() throws Exception {
+		Date openedDate = new Date();
+		Aircraft aircraft = new Aircraft("AirfieldNameOne", "AAAA", openedDate, 5555.0);
 
-        when(aircraftService.findByAirfieldName("AirfieldNameOne")).thenReturn(aircraft);
+		when(aircraftService.findByAirfieldName("AirfieldNameOne")).thenReturn(aircraft);
 
-        mockMvc.perform(get("/aircraft/{airfield}", "AirfieldNameOne"))
-                .andExpect(status().isOk());
+		mockMvc.perform(get("/aircraft/{airfield}", "AirfieldNameOne")).andExpect(status().isOk())
+				.andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+				.andExpect(jsonPath("$.airfieldName", is("AirfieldNameOne")))
+				.andExpect(jsonPath("$.dateOpened", is(openedDate.getTime())))
+				.andExpect(jsonPath("$.icaocode", is("AAAA")))
+				.andExpect(jsonPath("$.runwayLength", is(5555.0)));
 
-        verify(aircraftService, times(1)).findByAirfieldName("AirfieldNameOne");
-        verifyNoMoreInteractions(aircraftService);
-    }
+		verify(aircraftService, times(1)).findByAirfieldName("AirfieldNameOne");
+		verifyNoMoreInteractions(aircraftService);
+	}
 
+	// Create New Aircraft
+	@Test
+	public void test_create_aircraft() throws Exception {
+		Date openedDate = new Date();
+		DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
+		Aircraft aircraft = new Aircraft("AirfieldNameFive", "EEEE", openedDate, 9999.0);
 
-    // Create New Aircraft
-    @Test
-    public void test_create_aircraft_success() throws Exception {
-    	Date dateCreated = new Date();
-    	DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
-        Aircraft aircraft = new Aircraft("AirfieldNameFive", "EEEE", dateCreated, 9999.0);
+		when(aircraftService.exists(aircraft)).thenReturn(false);
+		doNothing().when(aircraftService).saveAircraft(aircraft);
 
-        when(aircraftService.exists(aircraft)).thenReturn(false);
-        doNothing().when(aircraftService).saveAircraft(aircraft);
-
-        mockMvc.perform(
-                post("/aircraft")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .param("airfieldName", "AirfieldNameFive")
-                        .param("icaoCode", "EEEE")
-                        .param("openedDate", df.format(dateCreated))
-                        .param("runwayLength", "9999.0"))
-                .andExpect(status().isCreated());
-    }
-
+		mockMvc.perform(post("/aircraft").contentType(MediaType.APPLICATION_JSON)
+				.param("airfieldName", "AirfieldNameFive")
+				.param("icaoCode", "EEEE")
+				.param("openedDate", df.format(openedDate))
+				.param("runwayLength", "9999.0"))
+				.andExpect(status().isCreated());
+	}
 }
