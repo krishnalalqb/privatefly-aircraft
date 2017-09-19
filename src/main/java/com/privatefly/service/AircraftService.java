@@ -12,4 +12,6 @@ public interface AircraftService {
 	Iterable<Aircraft> findAllAircrafts();
 	
 	Iterable<Aircraft> getAllAircraftsSorted();
+
+	boolean exists(Aircraft aircraft);
 }

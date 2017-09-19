@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.privatefly.model.Aircraft;
-import com.privatefly.service.AircraftServiceImpl;
+import com.privatefly.service.AircraftService;
 
 @RestController
 public class AircraftController {
@@ -24,7 +24,7 @@ public class AircraftController {
 	private static final Logger logger = Logger.getLogger(AircraftController.class);
 
 	@Autowired
-	private AircraftServiceImpl aircraftService;
+	private AircraftService aircraftService;
 
 	@RequestMapping(value = "/aircrafts", method = RequestMethod.GET)
 	public ResponseEntity<Iterable<Aircraft>> listAircrafts() {

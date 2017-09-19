@@ -28,5 +28,9 @@ public class AircraftServiceImpl implements AircraftService{
 		return aircraftDao.findAllByOrderByAirfieldNameAsc();
 	}
 
+	@Override
+    public boolean exists(Aircraft aircraft) {
+        return findByAirfieldName(aircraft.getAirfieldName()) != null;
+    }
 
 }
